@@ -1,0 +1,124 @@
+﻿@using Microsoft.AspNetCore.Components;
+@inherits LayoutComponentBase
+
+<div class="page">
+    <div class="sidebar">
+        <NavMenu />
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <!-- Search Bar -->
+            <div class="top-nav d-flex justify-content-between align-items-center w-100">
+                <div class="search-bar-container">
+                    <input type="text" class="form-control" placeholder="Search..." />
+                </div>
+            </div>
+
+            <div class="d-flex align-items-center notification-container">
+
+                <div class="position-relative me-3" @onclick="ClearNotifications">
+                    <i class="fas fa-bell fa-lg"></i> <!-- Font Awesome Bell Icon -->
+                    @if (notificationCount > 0)
+                    {
+                        <span class="badge bg-danger rounded-circle notification-badge">
+                            @notificationCount
+                        </span>
+                    }
+                </div>
+
+                <div class="dropdown user-profile-container">
+                    <!-- Profile Section (Clickable for Dropdown) -->
+                    <div class="d-flex align-items-center dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+                        <img src="images/profile-pic.png" class="user-profile-img me-2" />
+                        <span class="user-name">@userName</span>
+                    </div>
+
+                    <!-- Dropdown Menu -->
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#">Profile</a></li>
+                        <li><a class="dropdown-item" href="#">Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">Logout</a></li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+<style>
+    .search-bar-container{
+        width: 400px;
+    }
+
+    /* Add spacing between the search bar and notification icon */
+    .notification-container {
+        margin-left: 15px; /* Adjust this value as needed */
+    }
+
+    /* Reduce the size of the bell icon */
+    .fa-bell {
+        font-size: 1rem; /* Smaller icon size */
+        color: black; /* Default Bootstrap text color */
+    }
+
+    /* Reduce the size of the badge */
+    .badge {
+        font-size: 0.7rem; /* Smaller font size */
+        padding: 2px 5px; /* Adjust padding */
+        line-height: 1;
+    }
+
+    /* Adjust the position of the badge */
+    .notification-badge {
+        position: absolute;
+        top: 0px;
+        right: -6px;
+        transform: scale(0.9); /* Scale down */
+    }
+    /* Reduce the size of the user profile picture */
+    .user-profile-img {
+        width: 40px; /* Adjust size */
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        cursor: pointer;
+    }
+
+    /* Make the user text smaller */
+    .user-name {
+        font-size: 1rem; /* Smaller text */
+        font-weight: 500; /* Slightly bold */
+        color: #333; /* Text color */
+    }
+
+    /* Ensure the profile section is clickable */
+    .user-profile-container {
+        cursor: pointer; /* Makes it behave like a dropdown trigger */
+        margin-left: 10px; /* Space from the notification icon */
+    }
+
+        /* Prevents extra spacing on dropdown */
+        .user-profile-container .dropdown-menu {
+            min-width: 150px;
+        }
+
+
+</style>
+
+@code {
+    private int notificationCount = 3; // Default notifications
+    private string userName = "User"; // Default user name
+
+    private void ClearNotifications()
+    {
+        notificationCount = 0; // Reset notification count
+    }
+}

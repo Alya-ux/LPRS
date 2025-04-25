@@ -1,0 +1,49 @@
+﻿.navbar {
+    padding: 10px 0; /* Add some vertical padding */
+}
+
+.nav-list {
+    list-style-type: none; /* Remove bullet points */
+    margin: 0; /* Remove default margin */
+    padding: 0; /* Remove default padding */
+    display: flex; /* Use flexbox for horizontal alignment */
+}
+
+    .nav-list li {
+        margin-right: 20px; /* Space between items */
+    }
+
+        .nav-list li:last-child {
+            margin-right: 0; /* Remove margin from the last item */
+        }
+
+        .nav-list li a {
+            text-decoration: none; /* Remove default underline */
+            color: black; /* Text color */
+            position: relative; /* Positioning for the underline effect */
+        }
+
+            .nav-list li a:hover {
+                color: #505050; /* Replace 'red' with your desired color */
+            }
+
+
+            /* Underline effect on hover and active state */
+            .nav-list li a::after {
+                content: ""; /* Empty content for the underline */
+                display: block;
+                height: 2px; /* Height of the underline */
+                background-color: black; /* Color of the underline */
+                width: 100%; /* Full width for active links */
+                position: absolute;
+                left: 0;
+                bottom: -5px; /* Position it below the text */
+                transform: scaleX(0); /* Start with no width (hidden) */
+                transition: transform 0.3s ease; /* Smooth transition for the underline */
+            }
+
+            /* Show underline on hover and keep it for active links */
+            .nav-list li a:hover::after,
+            .nav-list li a.active::after {
+                transform: scaleX(1); /* Expand to full width on hover or if active */
+            }

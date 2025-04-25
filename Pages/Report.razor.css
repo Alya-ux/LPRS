@@ -1,0 +1,224 @@
+﻿.report-container label {
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.report-container select {
+    padding: 5px;
+    font-size: 14px;
+    border: 1px solid #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #003366;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+
+img {
+    border-radius: 5px;
+    object-fit: cover;
+}
+
+.page-number-label {
+    margin-right: 10px; /* Adds space between label and dropdown */
+}
+
+.pagination-bar {
+    display: flex;
+    justify-content: space-between; /* Aligns left and right */
+    align-items: center;
+    margin-top: 15px; /* Adds some space from the table */
+}
+
+.pagination-container {
+    margin-top: 20px; /* Creates spacing */
+}
+
+
+/* Container for all controls */
+.filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px; /* Space between rows */
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/* First Row: Search and Filter */
+.search-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1; /* Allows the row to expand */
+}
+
+.search-box {
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 12px;
+    width: 270px
+}
+
+.filter-dropdown {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.btn-filter {
+    padding: 8px 14px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+    .btn-filter:hover {
+        background-color: #0056b3;
+    }
+
+/* Move Print Button to Right */
+.print-container {
+    margin-left: auto;
+}
+
+/* Second Row: Items Per Page + Print Button */
+.items-print-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+/* Items Per Page Dropdown */
+.items-per-page-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Smaller Print Button */
+.btn-print {
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    font-size: 15px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+    .btn-print:hover {
+        background-color: #084298;
+    }
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+    .filter-row > * {
+        flex-shrink: 0; /* Prevent controls from shrinking awkwardly */
+    }
+
+.lane-select {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-right: 12px;
+    min-width: 130px;
+}
+
+.btn-clear {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+    .btn-clear:hover {
+        background-color: #5a6268;
+    }
+
+
+/*.date-picker {
+    background-color: #fff;
+    cursor: pointer;
+}*/
+
+
+/* Pagination Styling 
+.pagination-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+    .pagination button {
+        padding: 5px 12px;
+        border: 1px solid #007bff;
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+
+        .pagination button:disabled {
+            background-color: #ccc;
+            border-color: #ccc;
+            cursor: not-allowed;
+        }
+
+    .pagination .active {
+        font-weight: bold;
+        background-color: #007BFF;
+    }
+
+    .pagination .hover {
+        font-weight: bold;
+        background-color: #0056b3F;
+    }
+
+/* Dropdown Styling 
+.dropdown {
+    padding: 5px;
+    font-size: 14px;
+    /* border: 1px solid #007bff;
+    border-radius: 5px;
+    cursor: pointer;
+}*/
+
+

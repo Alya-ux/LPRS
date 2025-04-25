@@ -1,0 +1,305 @@
+﻿@page "/"
+@using LPRS.Services
+@using LPRS.Shared
+@inject VehicleDataService VehicleService
+
+<PageTitle>License Plate Recognition</PageTitle>
+
+<div class="page-container">
+
+    <h2 class="page-title">Home</h2>
+    <br />
+
+    <!-- Statistics Section -->
+    <div class="stats-container">
+        <div class="stats-card border-red">
+            <div class="icon"><i class="fas fa-car"></i></div>
+            <div>
+                <h3>@TotalDetections</h3>
+                <p>Total Detections Today</p>
+            </div>
+        </div>
+        <div class="stats-card border-purple">
+            <div class="icon"><i class="fas fa-id-card"></i></div>
+            <div>
+                <h3>@UniquePlates</h3>
+                <p>Unique License Plates</p>
+            </div>
+        </div>
+        <div class="stats-card border-yellow">
+            <div class="icon"><i class="fas fa-crown"></i></div>
+            <div>
+                <h3>@MostFrequentPlate</h3>
+                <p>Most Frequent Plate</p>
+            </div>
+        </div>
+        <div class="stats-card border-green">
+            <div class="icon"><i class="fas fa-clock"></i></div>
+            <div>
+                <h3>@PeakDetectionTime</h3>
+                <p>Peak Detection Time</p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Flagged Plates Alert -->
+    @if (flaggedPlates.Count > 0)
+    {
+        <div class="alert-container">
+            <h5>🚨 Alert: Flagged Vehicles</h5>
+            <ul>
+                @foreach (var plate in flaggedPlates)
+                {
+                    <li><strong>@plate</strong></li>
+                }
+            </ul>
+        </div>
+    }
+
+    <!-- Recent Detections Section -->
+    <div class="container recent-detections-container">
+        @* Buat grid view untuk recent detection*@
+        <h4>Recent License Plate Detection</h4>
+        <br />
+
+        <!-- Search & Filter -->
+        <div class="search-filter-container">
+            <input type="text" @bind="searchQuery" @bind:event="oninput" placeholder="Search by plate number..." class="search-bar" />
+
+            <select class="lane-select" @bind="selectedLane">
+                <option value="">All Lanes</option>
+                <option value="Lane 1">Lane 1</option>
+                <option value="Lane 2">Lane 2</option>
+                <option value="Lane 3">Lane 3</option>
+                <option value="Lane 4">Lane 4</option>
+            </select>
+        </div>
+
+        <!-- Pagination -->
+        <Pagination PageIndex="@pageIndex"
+                    TotalPages="@totalPages"
+                    Radius="2"
+                    OnSelectedPage="@ChangePage" />
+
+        <!-- Grid container for detections -->
+        <div class="row row-cols-1 row-cols-md-2 g-4">
+            @foreach (var entry in pagedEntries)
+            {
+                <div class="col d-flex">
+                    <div class="card shadow h-100 w-100 d-flex flex-column">
+                        <!-- Lane Header -->
+                        <div class="lane-header">Lane @entry.Lane</div>
+                        <!-- Content Row -->
+                        <div class="card-body d-flex align-items-center">
+                            <!-- Left Side - Image -->
+                            <img class="plate-image rounded me-4" src="@entry.ImageUrl" alt="License plate" />
+                            <!-- Right Side - Details -->
+                            <div class="plate-details">
+                                <div class="plate-number">@entry.PlateNumber</div>
+                                <div class="card-text text-muted">@entry.Timestamp.ToString("MM/dd/yyyy h:mm tt")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+
+    </div>
+</div>
+
+@code {
+    private List<VehicleEntry> entries = new();
+    private List<string> flaggedPlates = new();
+    private List<VehicleEntry> filteredEntries = new();
+    private List<VehicleEntry> pagedEntries = new();
+
+    private string _searchQuery = "";
+    private string _selectedLane = "";
+    private string _selectedTimeRange = "all";
+    private int pageIndex = 1;
+    private int itemsPerPage = 4;
+    private int totalPages = 1;
+
+    private string searchQuery
+    {
+        get => _searchQuery;
+        set
+        {
+            _searchQuery = value;
+            pageIndex = 1;
+            ApplyFilters();
+        }
+    }
+
+    private string selectedLane
+    {
+        get => _selectedLane;
+        set
+        {
+            _selectedLane = value;
+            pageIndex = 1;
+            ApplyFilters();
+        }
+    }
+
+    private string selectedTimeRange
+    {
+        get => _selectedTimeRange;
+        set
+        {
+            _selectedTimeRange = value;
+            pageIndex = 1;
+            ApplyFilters();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        entries = await VehicleService.GetEntriesAsync();
+        flaggedPlates = await VehicleService.GetFlaggedPlatesAsync();
+        if (entries != null)
+        {
+            ApplyFilters(); // This handles paging + filtering
+        }
+
+    }
+
+    private void ApplyFilters()
+    {
+        filteredEntries = entries
+            .Where(e => string.IsNullOrEmpty(searchQuery) || e.PlateNumber.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            .Where(e => string.IsNullOrEmpty(selectedLane) || $"Lane {e.Lane}" == selectedLane)
+            .OrderByDescending(e => e.Timestamp)
+            .ToList();
+
+        totalPages = (int)Math.Ceiling((double)filteredEntries.Count / itemsPerPage);
+        totalPages = Math.Max(1, totalPages); // Ensure at least 1 page
+
+        pagedEntries = filteredEntries
+            .Skip((pageIndex - 1) * itemsPerPage)
+            .Take(itemsPerPage)
+            .ToList();
+    }
+
+    private void ChangePage(int newPage)
+    {
+        if (newPage == pageIndex) return;
+
+        pageIndex = newPage;
+        ApplyFilters();
+    }
+
+
+
+    private void OnPageClicked(int page)
+    {
+        if (page != pageIndex)
+        {
+            ChangePage(page);
+        }
+    }
+
+
+
+   @* private IEnumerable<VehicleEntry> FilteredEntries => entries
+        .Where(e => (string.IsNullOrEmpty(searchQuery) || e.PlateNumber.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            && (string.IsNullOrEmpty(selectedLane) || $"Lane {e.Lane}" == selectedLane))
+        .OrderByDescending(e => e.Timestamp);*@
+
+    private int TotalDetections => entries.Count;
+    private int UniquePlates => entries.Select(e => e.PlateNumber).Distinct().Count();
+    private string MostFrequentPlate => entries.GroupBy(e => e.PlateNumber)
+        .OrderByDescending(g => g.Count())
+        .Select(g => g.Key)
+        .FirstOrDefault() ?? "N/A";
+    private string PeakDetectionTime => entries.GroupBy(e => e.Timestamp.Hour)
+        .OrderByDescending(g => g.Count())
+        .Select(g => $"{g.Key}:00 - {g.Key + 1}:00")
+        .FirstOrDefault() ?? "N/A";
+
+}
+
+
+@*@code {
+
+    public class VehicleEntry
+    {
+        public int Lane { get; set; }
+        public string PlateNumber { get; set; }
+        public DateTime Timestamp { get; set; }
+        public string ImageUrl { get; set; } // <-- Tambah property untuk gambar
+    }
+
+    private List<VehicleEntry> entries = new()
+    {
+        new VehicleEntry {
+            Lane = 1,
+            PlateNumber = "LT2314",
+            Timestamp = new DateTime(2025, 3, 12, 12, 13, 0),
+            ImageUrl = "images/plate1.png"
+        },
+        new VehicleEntry {
+            Lane = 2,
+            PlateNumber = "MQ8139",
+            Timestamp = new DateTime(2025, 3, 12, 13, 13, 0),
+            ImageUrl = "images/plate2.png"
+        },
+        new VehicleEntry {
+            Lane = 3,
+            PlateNumber = "XY1234",
+            Timestamp = new DateTime(2025, 3, 12, 14, 00, 0),
+            ImageUrl = "images/plate1.png"
+        },
+        new VehicleEntry {
+            Lane = 4,
+            PlateNumber = "AB5678",
+            Timestamp = new DateTime(2025, 3, 12, 15, 20, 0),
+            ImageUrl = "images/plate2.png"
+        }
+    };
+
+    private List<string> flaggedPlates = new() { "MQ8139", "AB5678" };
+
+    private string searchQuery = "";
+    private string selectedLane = "";
+    private string selectedTimeRange = "all";
+
+    private IEnumerable<VehicleEntry> FilteredEntries => entries
+        .Where(e => (string.IsNullOrEmpty(searchQuery) || e.PlateNumber.Contains(searchQuery, StringComparison.OrdinalIgnoreCase))
+            && (string.IsNullOrEmpty(selectedLane) || $"Lane {e.Lane}" == selectedLane))
+        .OrderByDescending(e => e.Timestamp);
+
+    private int TotalDetections => entries.Count;
+    private int UniquePlates => entries.Select(e => e.PlateNumber).Distinct().Count();
+    private string MostFrequentPlate => entries.GroupBy(e => e.PlateNumber)
+        .OrderByDescending(g => g.Count())
+        .Select(g => g.Key)
+        .FirstOrDefault() ?? "N/A";
+    private string PeakDetectionTime => entries.GroupBy(e => e.Timestamp.Hour)
+        .OrderByDescending(g => g.Count())
+        .Select(g => $"{g.Key}:00 - {g.Key + 1}:00")
+        .FirstOrDefault() ?? "N/A";
+
+    private void ExportReport()
+    {
+        var csv = "Lane,Plate Number,Timestamp\n";
+        foreach (var entry in entries)
+        {
+            csv += $"{entry.Lane},{entry.PlateNumber},{entry.Timestamp}\n";
+        }
+
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csv);
+        var base64 = Convert.ToBase64String(bytes);
+        var downloadUrl = $"data:text/csv;base64,{base64}";
+
+        // Trigger download
+        JS.InvokeVoidAsync("downloadFile", downloadUrl, "LicensePlateReport.csv");
+    }
+
+    [Inject] IJSRuntime JS { get; set; }
+}*@
+
+

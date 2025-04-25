@@ -1,0 +1,42 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid d-flex align-items-center justify-content-between">
+        <a class="navbar-brand d-flex flex-column align-items-start" href="">
+            <div class="d-flex align-items-center">
+                <img src="/Images/LPRS_Logo2.png" style="height:33px; margin-right: 3px;" alt="Logo" />
+                <span>LPRS</span>
+            </div>
+            <small class="text-muted" style="font-size: 0.83rem; margin-top: -2px;">License Plate Recognition</small>
+        </a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <!-- <i class="fa-solid fa-house"></i> Home-->
+                <span class="bi bi-house-door-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="Report">
+                <span class="bi bi-clipboard-data-fill-nav-menu"></span> Report
+                <!--<span class="bi bi-clipboard-data-nav-menu" aria-hidden="true"></span> Report -->
+            </NavLink>
+        </div>
+    </nav>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}

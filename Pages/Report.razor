@@ -1,0 +1,268 @@
+﻿@page "/report"
+@using LPRS.Services
+@using LPRS.Shared
+@using BlazorDateRangePicker
+@inject VehicleDataService VehicleService
+
+<h3>Report</h3>
+<br />
+
+<!-- Filter and Controls Container -->
+<div class="filter-container">
+
+    <!-- First Row: Search & Filter -->
+    <div class="filter-row">
+        <input type="text" class="search-box" @bind="SearchTerm" @bind:event="oninput" placeholder="Search license plate..." />
+
+        <select class="lane-select" @bind="SelectedLane">
+            <option value="">All Lanes</option>
+            <option value="1">Lane 1</option>
+            <option value="2">Lane 2</option>
+            <option value="3">Lane 3</option>
+            <option value="4">Lane 4</option>
+        </select>
+
+        <div class="date-picker">
+            <DateRangePicker OnRangeSelect="OnRangeSelect">
+                <PickerTemplate>
+                    <div id="@context.ParentId" @onclick="context.Toggle"
+                    style="padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; background: white; margin-right: 12px; min-width: 150px;">
+                        <i class="fa fa-calendar-alt"></i>&nbsp;
+                        <span>@SelectedRangeText</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                </PickerTemplate>
+            </DateRangePicker>
+        </div>
+
+        <button class="btn-clear" @onclick="ClearFilters">Clear</button>
+    </div>
+
+
+</div>
+
+<!-- Second Row: Items Per Page -->
+<div class="items-print-row">
+    <div class="items-per-page-container">
+        <label for="itemsPerPage">Items Per Page:</label>
+        <select id="itemsPerPage" class="dropdown" @onchange="OnItemsPerPageChanged">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="15">15</option>
+            <option value="25">25</option>
+        </select>
+    </div>
+    <!-- Print Button -->
+    <div class="print-container">
+        <button class="btn-print" @onclick="Print"><i class="fas fa-print"></i>&nbsp;Print</button>
+    </div>
+</div>
+
+
+<!--<p><strong>Total Records:</strong> <span id="total-count"></span></p>-->
+<!-- Data Table -->
+<!-- Visible Table (Paginated) -->
+<div id="visible-section">
+    <table>
+        <thead>
+            <tr>
+                <th>Snap Picture</th>
+                <th>Lane</th>
+                <th>License Plate</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var record in PaginatedRecords)
+            {
+                <tr>
+                    <td><img src="@record.ImageUrl" alt="Snapshot" width="100" height="60" /></td>
+                    <td>@record.Lane</td>
+                    <td>@record.PlateNumber</td>
+                    <td>@record.Timestamp.ToString("MM/dd/yyyy h:mm:ss tt")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Hidden Table for Printing: All Filtered Records -->
+<div id="print-section" style="display: none;">
+    <table>
+        <thead>
+            <tr>
+                <th>Snap Picture</th>
+                <th>Lane</th>
+                <th>License Plate</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var record in FilteredRecords)
+            {
+                <tr>
+                    <td><img src="@record.ImageUrl" alt="Snapshot" width="100" height="60" /></td>
+                    <td>@record.Lane</td>
+                    <td>@record.PlateNumber</td>
+                    <td>@record.Timestamp.ToString("MM/dd/yyyy h:mm:ss tt")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+<!-- Pagination Controls with Page Number Dropdown -->
+<div class="d-flex justify-content-between align-items-center pagination-bar">
+    <div>
+        <label class="page-number-label"><strong>Page Number:</strong></label>
+        <select class="form-select" style="width: 120px;" @bind="pageIndex">
+            @if (totalPages > 1)
+            {
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <option value="@i">Page @i</option>
+                }
+            }
+
+        </select>
+    </div>
+
+    <!-- Ellipsis-style Pagination -->
+    <Pagination PageIndex="@pageIndex"
+    TotalPages="@totalPages"
+    Radius="2"
+    OnSelectedPage="ChangePage" />
+</div>
+
+
+@code {
+    private List<VehicleEntry> VehicleRecords = new();
+    [Inject]
+    private IJSRuntime JS { get; set; }
+    private int ItemsPerPage = 5;
+    private int pageIndex = 1;
+    private int totalPages = 1;
+    private int? SelectedLane = null;
+    private DateTime? StartDate = null;
+    private DateTime? EndDate = null;
+    private DateRange? SelectedDateRange = null;
+    private string SelectedRangeText = "Choose dates...";
+
+    // Populate lanes based on existing entries
+    private List<int> AvailableLanes =>
+        VehicleRecords.Select(v => v.Lane).Distinct().OrderBy(x => x).ToList();
+
+    private List<VehicleEntry> PaginatedRecords =>
+        FilteredRecords.Skip((pageIndex - 1) * ItemsPerPage).Take(ItemsPerPage).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Fetch data from the injected service
+        VehicleRecords = await VehicleService.GetEntriesAsync();
+        UpdatePagination();
+    }
+
+    private void GoToPage(int page) => pageIndex = page;
+    private void PreviousPage() { if (pageIndex > 1) pageIndex--; }
+    private void NextPage() { if (pageIndex < totalPages) pageIndex++; }
+
+    private void ChangePage(int newPage)
+    {
+        if (newPage == pageIndex) return;
+
+        pageIndex = newPage;
+    }
+
+
+    private string SearchTerm = "";
+
+    private List<VehicleEntry> FilteredRecords =>
+    VehicleRecords
+        .Where(v =>
+            (string.IsNullOrWhiteSpace(SearchTerm) || v.PlateNumber.Contains(SearchTerm, StringComparison.OrdinalIgnoreCase)) &&
+            (SelectedLane == null || v.Lane == SelectedLane) &&
+            (!StartDate.HasValue || v.Timestamp.Date >= StartDate.Value.Date) &&
+            (!EndDate.HasValue || v.Timestamp.Date <= EndDate.Value.Date)
+        )
+        .ToList();
+
+    private string SelectedFilter = "all";
+
+    private void FilterRecords()
+    {
+        DateTime now = DateTime.Now;
+        switch (SelectedFilter)
+        {
+            case "today":
+                StartDate = now.Date;
+                EndDate = now.Date;
+                break;
+            case "week":
+                StartDate = now.AddDays(-7);
+                EndDate = now;
+                break;
+            case "month":
+                StartDate = now.AddMonths(-1);
+                EndDate = now;
+                break;
+            default:
+                StartDate = null;
+                EndDate = null;
+                break;
+        }
+
+        pageIndex = 1;
+        UpdatePagination();
+    }
+
+
+    private void UpdatePagination()
+    {
+        totalPages = (int)Math.Ceiling((double)FilteredRecords.Count / ItemsPerPage);
+        if (pageIndex > totalPages) pageIndex = totalPages;
+        if (pageIndex < 1) pageIndex = 1;
+    }
+
+    private void OnItemsPerPageChanged(ChangeEventArgs e)
+    {
+        ItemsPerPage = int.Parse(e.Value.ToString() ?? "5");
+        pageIndex = 1;
+        UpdatePagination();
+    }
+
+    private void OnRangeSelect(DateRange range)
+    {
+        StartDate = range.Start.DateTime;
+        EndDate = range.End.DateTime;
+        SelectedRangeText = $"{range.Start:MM/dd/yyyy} - {range.End:MM/dd/yyyy}";
+        pageIndex = 1;
+        UpdatePagination();
+    }
+
+
+
+    private void ClearFilters()
+    {
+        SearchTerm = "";
+        SelectedLane = null;
+        StartDate = null;
+        EndDate = null;
+        SelectedRangeText = "Choose dates...";
+        SelectedFilter = "all";
+        pageIndex = 1;
+        UpdatePagination();
+    }
+
+    private async Task Print()
+    {
+        await JS.InvokeVoidAsync("PrintTable");
+    }
+
+   @* public void Print()
+    {
+        JS.InvokeVoidAsync("Print");
+    }*@
+
+}
